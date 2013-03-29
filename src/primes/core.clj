@@ -57,32 +57,46 @@
   (is (= (generate-primes 3) [2 3]))
   (is (= (generate-primes 4) [2 3]))
   (is (= (generate-primes 5) [2 3 5]))
-  (is (= (generate-primes 19) ))
+  (is (= (generate-primes 19) [2 3 5 7 11 13 17 19]))
   (is (= (generate-primes 100)
          [2 3 5 7 11 13 17 19 23 25 29 31 37 41 43 47 53 59
           61 65 67 71 73 79 83 85 89 91 97])))
 
-(def primes-limit
-  ;; Go ahead and cache this value so that it's not calculated every time
-  (generate-primes 100))
-
 (defn is-additive
   "Test if a function 'secret' is additive:
       secret(x+y) = secret(x) + secret(y)"
-  [secret]
-  (every? true?
-          (for [x primes-limit
-                y primes-limit]
-            (= (secret (+ x y))
-               (+ (secret x) (secret y))))))
+  ([secret] (is-additive secret 100))
+  ([secret limit]
+     (let [primes-limit (generate-primes limit)]
+       (every? true?
+               (for [x primes-limit
+                     y primes-limit]
+                 (= (secret (+ x y))
+                    (+ (secret x) (secret y))))))))
 
 (deftest test-is-additive
   (is (is-additive #(identity %)))
   (is (is-additive #(* % 2)))
   (is (is-additive #(- %)))
+  (is (is-additive #(if (< % 1000) (identity %) 1000)))
   (is (not (is-additive (fn [x] 1))))
   (is (not (is-additive #(math/expt 2 %))))
-  (is (not (is-additive #(math/sqrt %)))))
+  (is (not (is-additive #(math/sqrt %))))
+  (is (not (is-additive #(if (< % 1000) (identity %) 100) 1000))))
 
-(defn -main []
-  (run-tests 'primes.core))
+(defn secret 
+  "The secret function"
+  [x]
+  (if (< x 1000) 
+    (identity x) 
+    1000))
+
+(defn -main
+  ([] (-main "100")) ;; If no argument provided, use 100
+  ([limit]
+     (if (is-additive secret (Integer/parseInt limit))
+       ;; Output whether the secret function is additive over 
+       ;; the prime limit specified by the argument
+       ;; Using ANSI colors, of course
+       (println "\033[32mThe secret function IS additive!\033[0m")
+       (println "\033[31mThe secret function IS NOT additive!\033[0m"))))
