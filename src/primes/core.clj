@@ -12,8 +12,6 @@
 ;; The easiest way to run is leiningen: https://github.com/technomancy/leiningen
 ;; Simply set up the code to run in leiningen, and run it with:
 ;; `lein run -m primes.core 1000`
-;; It's also possible to compile to a jar and run it that way:
-;; `lein uberjar && java -jar 
 
 (with-test
   (defn- generate-sieve-list [x]
